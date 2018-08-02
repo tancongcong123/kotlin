@@ -5,7 +5,7 @@ plugins {
 }
 
 dependencies {
-    compile(projectDist(":kotlin-stdlib"))
+    compile(project(":kotlin-stdlib"))
     compile(project(":core:util.runtime"))
     compile(project(":compiler:backend"))
     compile(project(":compiler:frontend"))
@@ -16,7 +16,7 @@ dependencies {
     compileOnly(intellijCoreDep()) { includeJars("intellij-core") }
     compileOnly(intellijDep()) { includeJars("java-api", "java-impl", "asm-all") }
 
-    testCompile(projectDist(":kotlin-test:kotlin-test-jvm"))
+    testCompile(project(":kotlin-test:kotlin-test-jvm"))
     testCompile(projectTests(":compiler:tests-common"))
     testCompile(commonDep("junit:junit"))
     testCompile(project(":compiler:util"))
@@ -24,7 +24,7 @@ dependencies {
     testCompile(projectTests(":idea:idea-test-framework"))
     testCompileOnly(intellijDep()) { includeJars("java-api", "java-impl") }
 
-    testRuntime(projectDist(":kotlin-reflect"))
+    testRuntime(project(":kotlin-reflect"))
     testRuntime(project(":idea:idea-android"))
     testRuntime(project(":idea:idea-gradle"))
     testRuntime(project(":plugins:kapt3-idea")) { isTransitive = false }
