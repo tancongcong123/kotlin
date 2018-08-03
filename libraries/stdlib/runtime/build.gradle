@@ -39,6 +39,7 @@ artifacts {
 }
 
 compileKotlin {
+    dependsOn(":core:builtins:serialize")
     kotlinOptions {
         freeCompilerArgs = [
                 "-Xallow-kotlin-package",
