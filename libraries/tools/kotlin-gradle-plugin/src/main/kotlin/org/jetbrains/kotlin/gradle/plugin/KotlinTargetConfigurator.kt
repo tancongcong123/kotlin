@@ -371,11 +371,12 @@ open class KotlinNativeTargetConfigurator(
         }
 
     private fun Project.createTestTask(compilation: KotlinNativeCompilation, testExecutableLinkTask: KotlinNativeCompile) {
-        val taskName = lowerCamelCaseName("run", compilation.name, compilation.target.name)
+        val compilationSuffix = compilation.name.takeIf { it != KotlinCompilation.TEST_COMPILATION_NAME }.orEmpty()
+        val taskName = lowerCamelCaseName(compilation.target.targetName, compilationSuffix, testTaskNameSuffix)
         val testTask = tasks.create(taskName, RunTestExecutable::class.java).apply {
             group = LifecycleBasePlugin.VERIFICATION_GROUP
             description = "Executes Kotlin/Native unit tests from the '${compilation.name}' compilation " +
-                    "for target '${compilation.platformType.name}'"
+                    "for target '${compilation.target.name}'"
 
             val testExecutableProperty = testExecutableLinkTask.outputFile
             executable = testExecutableProperty.get().absolutePath
@@ -449,6 +450,7 @@ open class KotlinNativeTargetConfigurator(
                     buildType == NativeBuildType.DEBUG &&
                     konanTarget == HostManager.host
                 ) {
+                    // TODO: Refactor and move into the corresponding method of AbstractKotlinTargetConfigurator.
                     createTestTask(compilation, linkTask)
                 }
             }
