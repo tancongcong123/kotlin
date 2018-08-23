@@ -17,6 +17,7 @@ import org.jetbrains.kotlin.gradle.tasks.KonanCompilerDownloadTask
 import org.jetbrains.kotlin.gradle.tasks.KonanCompilerDownloadTask.Companion.KONAN_DOWNLOAD_TASK_NAME
 import org.jetbrains.kotlin.gradle.tasks.KotlinTasksProvider
 import org.jetbrains.kotlin.gradle.utils.lowerCamelCaseName
+import org.jetbrains.kotlin.konan.target.HostManager
 import org.jetbrains.kotlin.konan.target.KonanTarget
 
 abstract class KotlinOnlyTargetPreset<T : KotlinCompilation>(
@@ -238,6 +239,9 @@ class KotlinNativeTargetPreset(
         return result
     }
 }
+
+internal val KonanTarget.enabledOnCurrentHost
+    get() = HostManager().isEnabled(this)
 
 internal val KonanTarget.presetName: String
     get() = when(this) {
