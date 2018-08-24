@@ -32,12 +32,14 @@ import org.gradle.nativeplatform.test.tasks.RunTestExecutable
 import org.jetbrains.kotlin.gradle.dsl.kotlinExtension
 import org.jetbrains.kotlin.gradle.plugin.mpp.*
 import org.jetbrains.kotlin.gradle.plugin.sources.getSourceSetHierarchy
+import org.jetbrains.kotlin.gradle.tasks.AbstractKotlinCompile
 import org.jetbrains.kotlin.gradle.tasks.KonanCompilerDownloadTask
 import org.jetbrains.kotlin.gradle.tasks.KotlinNativeCompile
 import org.jetbrains.kotlin.gradle.utils.isGradleVersionAtLeast
 import org.jetbrains.kotlin.gradle.utils.lowerCamelCaseName
 import org.jetbrains.kotlin.konan.target.CompilerOutputKind
 import org.jetbrains.kotlin.konan.target.HostManager
+import org.jetbrains.kotlin.konan.target.KonanTarget
 import java.io.File
 import java.util.*
 import java.util.concurrent.Callable
@@ -308,7 +310,7 @@ abstract class AbstractKotlinTargetConfigurator<KotlinTargetType : KotlinTarget>
     }
 }
 
-open class KotlinTargetConfigurator<KotlinCompilationType: KotlinCompilation>(
+open class KotlinTargetConfigurator<KotlinCompilationType : KotlinCompilation>(
     buildOutputCleanupRegistry: BuildOutputCleanupRegistry
 ) : AbstractKotlinTargetConfigurator<KotlinOnlyTarget<KotlinCompilationType>>(buildOutputCleanupRegistry) {
 
@@ -426,7 +428,9 @@ open class KotlinNativeTargetConfigurator(
             var filename = "$prefix$baseName$suffix"
             if (outputKind == CompilerOutputKind.FRAMEWORK ||
                 outputKind == CompilerOutputKind.STATIC ||
-                outputKind == CompilerOutputKind.DYNAMIC) {
+                outputKind == CompilerOutputKind.DYNAMIC ||
+                outputKind == CompilerOutputKind.PROGRAM && konanTarget == KonanTarget.WASM32
+            ) {
                 filename = filename.replace('-', '_')
             }
 
@@ -551,7 +555,7 @@ open class KotlinNativeTargetConfigurator(
         }
     }
 
-    override fun configureArchivesAndComponent(target: KotlinNativeTarget) : Unit = with(target.project) {
+    override fun configureArchivesAndComponent(target: KotlinNativeTarget): Unit = with(target.project) {
         tasks.create(target.artifactsTaskName)
         target.compilations.all {
             createKlibCompilationTask(it)
