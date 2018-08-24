@@ -295,13 +295,4 @@ class KotlinNativeCompilation(
         allSources += sourceSet.kotlin
     }
 
-    // TODO: Can we do it better?
-    companion object {
-        val DEBUG = NativeBuildType.DEBUG
-        val RELEASE = NativeBuildType.RELEASE
-
-        val EXECUTABLE = NativeOutputKind.EXECUTABLE
-        val FRAMEWORK = NativeOutputKind.FRAMEWORK
-    }
-
 }
