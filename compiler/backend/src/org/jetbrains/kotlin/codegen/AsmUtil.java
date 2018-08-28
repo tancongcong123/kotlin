@@ -16,30 +16,31 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns;
 import org.jetbrains.kotlin.builtins.PrimitiveType;
 import org.jetbrains.kotlin.codegen.binding.CalculatedClosure;
+import org.jetbrains.kotlin.codegen.binding.CodegenBinding;
 import org.jetbrains.kotlin.codegen.context.CodegenContext;
 import org.jetbrains.kotlin.codegen.intrinsics.HashCode;
 import org.jetbrains.kotlin.codegen.intrinsics.IntrinsicMethods;
 import org.jetbrains.kotlin.codegen.state.GenerationState;
 import org.jetbrains.kotlin.codegen.state.KotlinTypeMapper;
 import org.jetbrains.kotlin.config.JvmTarget;
+import org.jetbrains.kotlin.config.LanguageFeature;
+import org.jetbrains.kotlin.config.LanguageVersionSettings;
 import org.jetbrains.kotlin.descriptors.*;
 import org.jetbrains.kotlin.lexer.KtTokens;
 import org.jetbrains.kotlin.load.java.JavaVisibilities;
 import org.jetbrains.kotlin.load.java.JvmAnnotationNames;
 import org.jetbrains.kotlin.metadata.jvm.deserialization.JvmProtoBufUtil;
 import org.jetbrains.kotlin.metadata.jvm.serialization.JvmStringTable;
-import org.jetbrains.kotlin.name.ClassId;
-import org.jetbrains.kotlin.name.FqName;
+import org.jetbrains.kotlin.name.*;
 import org.jetbrains.kotlin.protobuf.MessageLite;
 import org.jetbrains.kotlin.renderer.DescriptorRenderer;
+import org.jetbrains.kotlin.resolve.BindingContext;
 import org.jetbrains.kotlin.resolve.DescriptorUtils;
 import org.jetbrains.kotlin.resolve.InlineClassesUtilsKt;
 import org.jetbrains.kotlin.resolve.checkers.ExpectedActualDeclarationChecker;
 import org.jetbrains.kotlin.resolve.inline.InlineUtil;
-import org.jetbrains.kotlin.resolve.jvm.AsmTypes;
-import org.jetbrains.kotlin.resolve.jvm.JvmClassName;
-import org.jetbrains.kotlin.resolve.jvm.JvmPrimitiveType;
-import org.jetbrains.kotlin.resolve.jvm.RuntimeAssertionInfo;
+import org.jetbrains.kotlin.resolve.jvm.*;
+import org.jetbrains.kotlin.resolve.jvm.checkers.DalvikIdentifierUtils;
 import org.jetbrains.kotlin.resolve.jvm.diagnostics.JvmDeclarationOrigin;
 import org.jetbrains.kotlin.serialization.DescriptorSerializer;
 import org.jetbrains.kotlin.synthetic.SyntheticJavaPropertyDescriptor;
@@ -90,10 +91,23 @@ public class AsmUtil {
             .put(JavaVisibilities.PACKAGE_VISIBILITY, NO_FLAG_PACKAGE_PRIVATE)
             .build();
 
-    public static final String BOUND_REFERENCE_RECEIVER = "receiver";
-    public static final String RECEIVER_NAME = "$receiver";
-    public static final String CAPTURED_RECEIVER_FIELD = "receiver$0";
+    public static final String THIS = "this";
+
+    public static final String LABELED_THIS = THIS + "_";
+
     public static final String CAPTURED_THIS_FIELD = "this$0";
+
+    public static final String RECEIVER_PARAMETER_NAME = "$receiver";
+
+    /*
+        This is basically an old convention. Starting from Kotlin 1.3, it was replaced with `$this_<label>`.
+        Note that it is still used for inlined callable references and anonymous callable extension receivers
+        even in 1.3.
+    */
+    public static final String CAPTURED_RECEIVER_FIELD = "receiver$0";
+
+    // For non-inlined callable references ('kotlin.jvm.internal.CallableReference' has a 'receiver' field)
+    public static final String BOUND_REFERENCE_RECEIVER = "receiver";
 
     private static final ImmutableMap<Integer, JvmPrimitiveType> primitiveTypeByAsmSort;
     private static final ImmutableMap<Type, Type> primitiveTypeByBoxedType;
@@ -111,6 +125,75 @@ public class AsmUtil {
     }
 
     private AsmUtil() {
+    }
+
+    @NotNull
+    public static String getCapturedFieldName(@NotNull String originalName) {
+        return "$" + originalName;
+    }
+
+    @NotNull
+    public static String getLabeledThisNameForReceiver(
+            @NotNull CallableDescriptor descriptor,
+            @NotNull BindingContext bindingContext,
+            @NotNull LanguageVersionSettings languageVersionSettings
+    ) {
+        if (!languageVersionSettings.supportsFeature(LanguageFeature.NewCapturedReceiverFieldNamingConvention)) {
+            return CAPTURED_RECEIVER_FIELD;
+        }
+
+        Name callableName = null;
+
+        if (descriptor instanceof FunctionDescriptor) {
+            String labelName = bindingContext.get(CodegenBinding.CALL_LABEL_FOR_LAMBDA_ARGUMENT, (FunctionDescriptor) descriptor);
+            if (labelName != null) {
+                return getLabeledThisName(labelName, CAPTURED_RECEIVER_FIELD);
+            }
+
+            if (descriptor instanceof VariableAccessorDescriptor) {
+                VariableAccessorDescriptor accessor = (VariableAccessorDescriptor) descriptor;
+                callableName = accessor.getCorrespondingVariable().getName();
+            }
+        }
+
+        if (callableName == null) {
+            callableName = descriptor.getName();
+        }
+
+        if (!NameUtils.hasName(callableName)) {
+            return CAPTURED_RECEIVER_FIELD;
+        }
+
+        return getLabeledThisName(callableName.asString(), CAPTURED_RECEIVER_FIELD);
+    }
+
+    @NotNull
+    private static String getLabeledThisName(@NotNull String callableName, @NotNull String defaultName) {
+        if (callableName.startsWith("<")) {
+            // A special name is not an identifier
+            return defaultName;
+        }
+
+        if (!DalvikIdentifierUtils.isValidDalvikIdentifier(callableName)) {
+            return LABELED_THIS + mangleLabel(callableName);
+        }
+
+        return LABELED_THIS + callableName;
+    }
+
+    private static String mangleLabel(String label) {
+        StringBuilder sb = new StringBuilder();
+
+        for (char c : label.toCharArray()) {
+            if (DalvikIdentifierUtils.isValidDalvikCharacter(c)) {
+                sb.append(c);
+                continue;
+            }
+
+            sb.append("_u").append(Integer.toHexString(c));
+        }
+
+        return sb.toString();
     }
 
     @NotNull
@@ -487,7 +570,12 @@ public class AsmUtil {
         v.athrow();
     }
 
-    public static void genClosureFields(@NotNull CalculatedClosure closure, ClassBuilder v, KotlinTypeMapper typeMapper) {
+    public static void genClosureFields(
+            @NotNull CalculatedClosure closure,
+            ClassBuilder v,
+            KotlinTypeMapper typeMapper,
+            @NotNull LanguageVersionSettings languageVersionSettings
+    ) {
         List<Pair<String, Type>> allFields = new ArrayList<>();
 
         ClassifierDescriptor captureThis = closure.getCapturedOuterClassDescriptor();
@@ -497,7 +585,8 @@ public class AsmUtil {
 
         KotlinType captureReceiverType = closure.getCapturedReceiverFromOuterContext();
         if (captureReceiverType != null && !CallableReferenceUtilKt.isForCallableReference(closure)) {
-            allFields.add(Pair.create(CAPTURED_RECEIVER_FIELD, typeMapper.mapType(captureReceiverType)));
+            String fieldName = closure.getCapturedReceiverFieldName(typeMapper.getBindingContext(), languageVersionSettings);
+            allFields.add(Pair.create(fieldName, typeMapper.mapType(captureReceiverType)));
         }
 
         allFields.addAll(closure.getRecordedFields());
@@ -713,7 +802,7 @@ public class AsmUtil {
         }
     }
 
-    public static void genNotNullAssertionsForParameters(
+    static void genNotNullAssertionsForParameters(
             @NotNull InstructionAdapter v,
             @NotNull GenerationState state,
             @NotNull FunctionDescriptor descriptor,
@@ -735,7 +824,7 @@ public class AsmUtil {
             if (descriptor.isOperator()) {
                 ReceiverParameterDescriptor receiverParameter = descriptor.getExtensionReceiverParameter();
                 if (receiverParameter != null) {
-                    genParamAssertion(v, state.getTypeMapper(), frameMap, receiverParameter, "$receiver", descriptor);
+                    genParamAssertion(v, state.getTypeMapper(), frameMap, receiverParameter, CAPTURED_RECEIVER_FIELD, descriptor);
                 }
             }
             return;
@@ -743,7 +832,7 @@ public class AsmUtil {
 
         ReceiverParameterDescriptor receiverParameter = descriptor.getExtensionReceiverParameter();
         if (receiverParameter != null) {
-            genParamAssertion(v, state.getTypeMapper(), frameMap, receiverParameter, "$receiver", descriptor);
+            genParamAssertion(v, state.getTypeMapper(), frameMap, receiverParameter, CAPTURED_RECEIVER_FIELD, descriptor);
         }
 
         for (ValueParameterDescriptor parameter : descriptor.getValueParameters()) {
