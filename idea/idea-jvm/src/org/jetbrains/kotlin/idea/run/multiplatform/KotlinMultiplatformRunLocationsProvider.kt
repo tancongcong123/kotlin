@@ -9,8 +9,11 @@ import com.intellij.execution.Location
 import com.intellij.execution.PsiLocation
 import com.intellij.execution.actions.MultipleRunLocationsProvider
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.module.ModuleManager
+import org.jetbrains.kotlin.config.TargetPlatformKind
 import org.jetbrains.kotlin.idea.caches.project.implementingModules
 import org.jetbrains.kotlin.idea.configuration.toModuleGroup
+import org.jetbrains.kotlin.idea.project.targetPlatform
 
 class KotlinMultiplatformRunLocationsProvider : MultipleRunLocationsProvider() {
     override fun getLocationDisplayName(locationCreatedFrom: Location<*>, originalLocation: Location<*>): String? {
@@ -20,10 +23,15 @@ class KotlinMultiplatformRunLocationsProvider : MultipleRunLocationsProvider() {
 
     override fun getAlternativeLocations(originalLocation: Location<*>): List<Location<*>> {
         val originalModule = originalLocation.module ?: return emptyList()
-        return originalModule.implementingModules.map { PsiLocation(originalLocation.project, it, originalLocation.psiElement) }
+        return modulesToRunFrom(originalModule).map { PsiLocation(originalLocation.project, it, originalLocation.psiElement) }
     }
 }
 
 private fun compactedGradleProjectId(module: Module): String? {
     return module.toModuleGroup().baseModule.name
+}
+
+private fun modulesToRunFrom(originalModule: Module): List<Module> {
+    val modules = originalModule.implementingModules
+    return modules.filter { it.targetPlatform is TargetPlatformKind.Jvm }.take(1)
 }
