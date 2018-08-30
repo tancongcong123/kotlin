@@ -3980,6 +3980,11 @@ public class BoxJsTestGenerated extends AbstractBoxJsTest {
             runTest("js/js.translator/testData/box/inline/kt26117.kt");
         }
 
+        @TestMetadata("kt26466.kt")
+        public void testKt26466() throws Exception {
+            runTest("js/js.translator/testData/box/inline/kt26466.kt");
+        }
+
         @TestMetadata("lambdaInLambda.kt")
         public void testLambdaInLambda() throws Exception {
             runTest("js/js.translator/testData/box/inline/lambdaInLambda.kt");

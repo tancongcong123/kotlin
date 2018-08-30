@@ -294,9 +294,7 @@ public class JsInliner extends JsVisitorWithContextImpl {
                 JsExpression argument = call.getArguments().get(i);
                 call.getArguments().set(i, accept(argument));
             }
-            inlineFunctionDepth++;
             visit(definition);
-            inlineFunctionDepth--;
             return false;
         }
 
