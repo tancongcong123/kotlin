@@ -440,13 +440,17 @@ public class PropertyCodegen {
             @NotNull Annotations annotations,
             boolean isBackingFieldOwner
     ) {
-        KotlinType delegateType = getDelegateTypeForProperty(p, propertyDescriptor);
+        KotlinType delegateType = getDelegateTypeForProperty(p, propertyDescriptor, bindingContext);
 
         generateBackingField(p, propertyDescriptor, true, delegateType, null, annotations, isBackingFieldOwner);
     }
 
     @NotNull
-    private KotlinType getDelegateTypeForProperty(@NotNull KtProperty p, @NotNull PropertyDescriptor propertyDescriptor) {
+    public static KotlinType getDelegateTypeForProperty(
+            @NotNull KtProperty p,
+            @NotNull PropertyDescriptor propertyDescriptor,
+            @NotNull BindingContext bindingContext
+    ) {
         KotlinType delegateType = null;
 
         ResolvedCall<FunctionDescriptor> provideDelegateResolvedCall =
