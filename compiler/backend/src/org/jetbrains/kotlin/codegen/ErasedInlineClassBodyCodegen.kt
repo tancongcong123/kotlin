@@ -59,7 +59,7 @@ class ErasedInlineClassBodyCodegen(
 
     private fun generateDefaultConstructorForErasedInlineClass() {
         val mv = v.newMethod(
-            ErasedInlineClassOrigin(myClass.psiOrParent, descriptor), 0,
+            ErasedInlineClassOrigin(myClass.psiOrParent, descriptor), Opcodes.ACC_SYNTHETIC,
             "<init>", "()V", null, ArrayUtil.EMPTY_STRING_ARRAY
         )
         mv.visitCode()
