@@ -5,6 +5,7 @@
 
 @file:kotlin.jvm.JvmName("IntrinsicsKt")
 @file:kotlin.jvm.JvmMultifileClass
+@file:Suppress("INVISIBLE_MEMBER", "INVISIBLE_REFERENCE")
 
 package kotlin.coroutines.experimental.intrinsics
 
