@@ -8,6 +8,7 @@ package org.jetbrains.kotlin.gradle.tasks
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.file.FileCollection
+import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.logging.Logger
 import org.gradle.api.plugins.BasePluginConvention
 import org.gradle.api.tasks.*
@@ -152,6 +153,13 @@ abstract class AbstractKotlinCompile<T : CommonCompilerArguments>() : AbstractKo
     internal val compileClasspath: Iterable<File>
         get() = (classpath + additionalClasspath)
                 .filterTo(LinkedHashSet(), File::exists)
+
+    private val sourceFilesExtensionsSet: MutableSet<String> = linkedSetOf("kt", "kts")
+
+    val sourceFilesExtensions: Set<String> get() = sourceFilesExtensionsSet
+    internal fun sourceFilesExtensions(extensions: Iterable<String>) {
+        sourceFilesExtensionsSet.addAll(extensions)
+    }
 
     private val kotlinExt: KotlinProjectExtension
             get() = project.extensions.findByType(KotlinProjectExtension::class.java)!!
@@ -360,7 +368,7 @@ open class KotlinCompile : AbstractKotlinCompile<K2JVMCompilerArguments>(), Kotl
     }
 
     @Internal
-    override fun getSourceRoots() = SourceRoots.ForJvm.create(getSource(), sourceRootsContainer)
+    override fun getSourceRoots() = SourceRoots.ForJvm.create(getSource(), sourceRootsContainer, sourceFilesExtensions)
 
     override fun callCompiler(args: K2JVMCompilerArguments, sourceRoots: SourceRoots, changedFiles: ChangedFiles) {
         sourceRoots as SourceRoots.ForJvm
@@ -487,7 +495,7 @@ open class Kotlin2JsCompile() : AbstractKotlinCompile<K2JSCompilerArguments>(), 
         kotlinOptionsImpl.updateArguments(args)
     }
 
-    override fun getSourceRoots() = SourceRoots.KotlinOnly.create(getSource())
+    override fun getSourceRoots() = SourceRoots.KotlinOnly.create(getSource(), sourceFilesExtensions)
 
     @get:InputFiles
     @get:Optional

@@ -64,7 +64,10 @@ abstract class AbstractKotlinCompilation(
     override val kotlinSourceSets: MutableSet<KotlinSourceSet> = mutableSetOf()
 
     open fun addSourcesToCompileTask(sourceSet: KotlinSourceSet) {
-        (target.project.tasks.getByName(compileKotlinTaskName) as AbstractKotlinCompile<*>).source(sourceSet.kotlin)
+        (target.project.tasks.getByName(compileKotlinTaskName) as AbstractKotlinCompile<*>).apply {
+            source(sourceSet.kotlin)
+            sourceFilesExtensions(sourceSet.sourceFilesExtensions)
+        }
     }
 
     override fun source(sourceSet: KotlinSourceSet) {
