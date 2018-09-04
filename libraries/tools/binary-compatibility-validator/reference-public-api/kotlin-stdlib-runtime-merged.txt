@@ -145,8 +145,8 @@ public abstract interface annotation class kotlin/SinceKotlin : java/lang/annota
 	public abstract fun version ()Ljava/lang/String;
 }
 
-public final class kotlin/SuccessOrFailure : java/io/Serializable {
-	public static final field Companion Lkotlin/SuccessOrFailure$Companion;
+public final class kotlin/Result : java/io/Serializable {
+	public static final field Companion Lkotlin/Result$Companion;
 	public fun <init> (Ljava/lang/Object;)V
 	public fun equals (Ljava/lang/Object;)Z
 	public fun hashCode ()I
@@ -154,11 +154,11 @@ public final class kotlin/SuccessOrFailure : java/io/Serializable {
 	public final fun unbox ()Ljava/lang/Object;
 }
 
-public final class kotlin/SuccessOrFailure$Companion {
+public final class kotlin/Result$Companion {
 }
 
-public final class kotlin/SuccessOrFailure$Erased {
-	public static final fun box (Ljava/lang/Object;)Lkotlin/SuccessOrFailure;
+public final class kotlin/Result$Erased {
+	public static final fun box (Ljava/lang/Object;)Lkotlin/Result;
 	public static fun constructor (Ljava/lang/Object;)Ljava/lang/Object;
 	public static fun equals (Ljava/lang/Object;Ljava/lang/Object;)Z
 	public static final fun exceptionOrNull (Ljava/lang/Object;)Ljava/lang/Throwable;
@@ -170,7 +170,7 @@ public final class kotlin/SuccessOrFailure$Erased {
 	public static fun toString (Ljava/lang/Object;)Ljava/lang/String;
 }
 
-public final class kotlin/SuccessOrFailure$Failure : java/io/Serializable {
+public final class kotlin/Result$Failure : java/io/Serializable {
 	public final field exception Ljava/lang/Throwable;
 	public fun <init> (Ljava/lang/Throwable;)V
 	public fun equals (Ljava/lang/Object;)Z
@@ -178,7 +178,7 @@ public final class kotlin/SuccessOrFailure$Failure : java/io/Serializable {
 	public fun toString ()Ljava/lang/String;
 }
 
-public final class kotlin/SuccessOrFailureKt {
+public final class kotlin/ResultKt {
 	public static final fun getOrDefault (Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 }
 

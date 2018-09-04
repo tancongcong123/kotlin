@@ -1926,66 +1926,66 @@ public class LocalInspectionTestGenerated extends AbstractLocalInspectionTest {
             }
         }
 
-        @TestMetadata("idea/testData/inspectionsLocal/coroutines/resultIsSuccessOrFailure")
+        @TestMetadata("idea/testData/inspectionsLocal/coroutines/resultIsResult")
         @TestDataPath("$PROJECT_ROOT")
         @RunWith(JUnit3RunnerWithInners.class)
-        public static class ResultIsSuccessOrFailure extends AbstractLocalInspectionTest {
+        public static class ResultIsResult extends AbstractLocalInspectionTest {
             private void runTest(String testDataFilePath) throws Exception {
                 KotlinTestUtils.runTest(this::doTest, TargetBackend.ANY, testDataFilePath);
             }
 
             @TestMetadata("abstract.kt")
             public void testAbstract() throws Exception {
-                runTest("idea/testData/inspectionsLocal/coroutines/resultIsSuccessOrFailure/abstract.kt");
+                runTest("idea/testData/inspectionsLocal/coroutines/resultIsResult/abstract.kt");
             }
 
-            public void testAllFilesPresentInResultIsSuccessOrFailure() throws Exception {
-                KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("idea/testData/inspectionsLocal/coroutines/resultIsSuccessOrFailure"), Pattern.compile("^([\\w\\-_]+)\\.(kt|kts)$"), TargetBackend.ANY, true);
+            public void testAllFilesPresentInResultIsResult() throws Exception {
+                KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("idea/testData/inspectionsLocal/coroutines/resultIsResult"), Pattern.compile("^([\\w\\-_]+)\\.(kt|kts)$"), TargetBackend.ANY, true);
             }
 
             @TestMetadata("anonymous.kt")
             public void testAnonymous() throws Exception {
-                runTest("idea/testData/inspectionsLocal/coroutines/resultIsSuccessOrFailure/anonymous.kt");
+                runTest("idea/testData/inspectionsLocal/coroutines/resultIsResult/anonymous.kt");
             }
 
             @TestMetadata("complexBlock.kt")
             public void testComplexBlock() throws Exception {
-                runTest("idea/testData/inspectionsLocal/coroutines/resultIsSuccessOrFailure/complexBlock.kt");
+                runTest("idea/testData/inspectionsLocal/coroutines/resultIsResult/complexBlock.kt");
             }
 
             @TestMetadata("lambdaSimple.kt")
             public void testLambdaSimple() throws Exception {
-                runTest("idea/testData/inspectionsLocal/coroutines/resultIsSuccessOrFailure/lambdaSimple.kt");
+                runTest("idea/testData/inspectionsLocal/coroutines/resultIsResult/lambdaSimple.kt");
             }
 
             @TestMetadata("lambdaWithPartialReturn.kt")
             public void testLambdaWithPartialReturn() throws Exception {
-                runTest("idea/testData/inspectionsLocal/coroutines/resultIsSuccessOrFailure/lambdaWithPartialReturn.kt");
+                runTest("idea/testData/inspectionsLocal/coroutines/resultIsResult/lambdaWithPartialReturn.kt");
             }
 
             @TestMetadata("lambdaWithReturn.kt")
             public void testLambdaWithReturn() throws Exception {
-                runTest("idea/testData/inspectionsLocal/coroutines/resultIsSuccessOrFailure/lambdaWithReturn.kt");
+                runTest("idea/testData/inspectionsLocal/coroutines/resultIsResult/lambdaWithReturn.kt");
             }
 
             @TestMetadata("needParentheses.kt")
             public void testNeedParentheses() throws Exception {
-                runTest("idea/testData/inspectionsLocal/coroutines/resultIsSuccessOrFailure/needParentheses.kt");
+                runTest("idea/testData/inspectionsLocal/coroutines/resultIsResult/needParentheses.kt");
             }
 
             @TestMetadata("rename.kt")
             public void testRename() throws Exception {
-                runTest("idea/testData/inspectionsLocal/coroutines/resultIsSuccessOrFailure/rename.kt");
+                runTest("idea/testData/inspectionsLocal/coroutines/resultIsResult/rename.kt");
             }
 
             @TestMetadata("simple.kt")
             public void testSimple() throws Exception {
-                runTest("idea/testData/inspectionsLocal/coroutines/resultIsSuccessOrFailure/simple.kt");
+                runTest("idea/testData/inspectionsLocal/coroutines/resultIsResult/simple.kt");
             }
 
             @TestMetadata("simpleBlock.kt")
             public void testSimpleBlock() throws Exception {
-                runTest("idea/testData/inspectionsLocal/coroutines/resultIsSuccessOrFailure/simpleBlock.kt");
+                runTest("idea/testData/inspectionsLocal/coroutines/resultIsResult/simpleBlock.kt");
             }
         }
     }
