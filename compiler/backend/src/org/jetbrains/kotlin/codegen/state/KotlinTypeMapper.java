@@ -59,6 +59,7 @@ import org.jetbrains.kotlin.resolve.jvm.jvmSignature.JvmMethodParameterSignature
 import org.jetbrains.kotlin.resolve.jvm.jvmSignature.JvmMethodSignature;
 import org.jetbrains.kotlin.serialization.deserialization.descriptors.DeserializedCallableMemberDescriptor;
 import org.jetbrains.kotlin.types.*;
+import org.jetbrains.kotlin.util.MemberUtilsKt;
 import org.jetbrains.kotlin.util.OperatorNameConventions;
 import org.jetbrains.org.objectweb.asm.Type;
 import org.jetbrains.org.objectweb.asm.commons.Method;
@@ -864,7 +865,7 @@ public class KotlinTypeMapper {
                     signature = mapSignatureSkipGeneric(originalDescriptor, OwnerKind.DEFAULT_IMPLS);
                     returnKotlinType = originalDescriptor.getReturnType();
                     if (descriptor instanceof AccessorForCallableDescriptor &&
-                        hasJvmDefaultAnnotation(((AccessorForCallableDescriptor) descriptor).getCalleeDescriptor())) {
+                        hasJvmDefaultAnnotation(MemberUtilsKt.findImplementationFromInterface(((AccessorForCallableDescriptor) descriptor).getCalleeDescriptor()))) {
                         owner = mapClass(currentOwner);
                         isInterfaceMember = true;
                     }
