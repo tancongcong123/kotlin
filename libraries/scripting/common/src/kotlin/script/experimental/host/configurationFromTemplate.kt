@@ -19,7 +19,7 @@ private const val SCRIPT_RUNTIME_TEMPLATES_PACKAGE = "kotlin.script.templates.st
 @KotlinScript
 private abstract class DummyScriptTemplate
 
-fun createCompilationConfigurationFromTemplate(
+fun createJvmCompilationConfigurationFromTemplate(
     baseClassType: KotlinType,
     hostConfiguration: ScriptingHostConfiguration,
     contextClass: KClass<*> = ScriptCompilationConfiguration::class,

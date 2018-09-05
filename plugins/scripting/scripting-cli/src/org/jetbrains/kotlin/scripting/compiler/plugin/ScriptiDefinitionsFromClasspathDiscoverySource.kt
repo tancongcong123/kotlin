@@ -18,7 +18,7 @@ import java.util.jar.JarFile
 import kotlin.coroutines.experimental.buildSequence
 import kotlin.script.experimental.annotations.KotlinScript
 import kotlin.script.experimental.api.KotlinType
-import kotlin.script.experimental.host.createCompilationConfigurationFromTemplate
+import kotlin.script.experimental.host.createJvmCompilationConfigurationFromTemplate
 import kotlin.script.experimental.jvm.defaultJvmScriptingHostConfiguration
 import kotlin.script.templates.ScriptTemplateDefinition
 
@@ -274,7 +274,7 @@ private fun loadScriptDefinition(
             if (cls.annotations.firstIsInstanceOrNull<KotlinScript>() != null) {
                 val environment = defaultJvmScriptingHostConfiguration
                 KotlinScriptDefinitionAdapterFromNewAPI(
-                    createCompilationConfigurationFromTemplate(
+                    createJvmCompilationConfigurationFromTemplate(
                         KotlinType(cls.kotlin),
                         environment,
                         KotlinScriptDefinition::class

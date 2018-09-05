@@ -56,7 +56,7 @@ import kotlin.script.experimental.dependencies.ScriptDependencies
 import kotlin.script.experimental.dependencies.asSuccess
 import kotlin.script.experimental.host.ScriptingHostConfiguration
 import kotlin.script.experimental.host.configurationDependencies
-import kotlin.script.experimental.host.createCompilationConfigurationFromTemplate
+import kotlin.script.experimental.host.createJvmCompilationConfigurationFromTemplate
 import kotlin.script.experimental.jvm.JvmDependency
 import kotlin.script.experimental.jvm.defaultJvmScriptingHostConfiguration
 import kotlin.script.experimental.location.ScriptExpectedLocation
@@ -214,7 +214,7 @@ fun loadDefinitionsFromTemplates(
                         configurationDependencies(JvmDependency(classpath))
                     }
                     KotlinScriptDefinitionAdapterFromNewAPI(
-                        createCompilationConfigurationFromTemplate(
+                        createJvmCompilationConfigurationFromTemplate(
                             KotlinType(
                                 template
                             ), hostConfiguration, KotlinScriptDefinition::class
