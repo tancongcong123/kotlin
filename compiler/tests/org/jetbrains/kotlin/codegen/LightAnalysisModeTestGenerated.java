@@ -11496,6 +11496,11 @@ public class LightAnalysisModeTestGenerated extends AbstractLightAnalysisModeTes
             runTest("compiler/testData/codegen/box/inlineClasses/callComputablePropertyInsideInlineClass.kt");
         }
 
+        @TestMetadata("callSpecializedEqualsViaReflection.kt")
+        public void testCallSpecializedEqualsViaReflection() throws Exception {
+            runTest("compiler/testData/codegen/box/inlineClasses/callSpecializedEqualsViaReflection.kt");
+        }
+
         @TestMetadata("callSpeciallyOverriddenPropertyOfInlineClass.kt")
         public void testCallSpeciallyOverriddenPropertyOfInlineClass() throws Exception {
             runTest("compiler/testData/codegen/box/inlineClasses/callSpeciallyOverriddenPropertyOfInlineClass.kt");
