@@ -137,15 +137,15 @@ public class OverridingUtil {
      * {@link #filterOutOverridden(Set)}, because some of the declarations can override the other.
      */
     @NotNull
-    public static Set<CallableMemberDescriptor> getOverriddenDeclarations(@NotNull CallableMemberDescriptor descriptor) {
-        Set<CallableMemberDescriptor> result = new LinkedHashSet<CallableMemberDescriptor>();
+    public static <D extends CallableMemberDescriptor> Set<D> getOverriddenDeclarations(@NotNull D descriptor) {
+        Set<D> result = new LinkedHashSet<D>();
         collectOverriddenDeclarations(descriptor, result);
         return result;
     }
 
-    private static void collectOverriddenDeclarations(
-            @NotNull CallableMemberDescriptor descriptor,
-            @NotNull Set<CallableMemberDescriptor> result
+    private static <D extends CallableMemberDescriptor> void collectOverriddenDeclarations(
+            @NotNull D descriptor,
+            @NotNull Set<D> result
     ) {
         if (descriptor.getKind().isReal()) {
             result.add(descriptor);
@@ -155,7 +155,7 @@ public class OverridingUtil {
                 throw new IllegalStateException("No overridden descriptors found for (fake override) " + descriptor);
             }
             for (CallableMemberDescriptor overridden : descriptor.getOverriddenDescriptors()) {
-                collectOverriddenDeclarations(overridden, result);
+                collectOverriddenDeclarations((D)overridden, result);
             }
         }
     }

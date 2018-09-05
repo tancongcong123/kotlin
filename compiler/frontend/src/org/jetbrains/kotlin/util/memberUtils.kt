@@ -9,12 +9,12 @@ import org.jetbrains.kotlin.descriptors.CallableMemberDescriptor
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.resolve.DescriptorUtils
 import org.jetbrains.kotlin.resolve.OverridingUtil
-import org.jetbrains.kotlin.resolve.calls.callResolverUtil.isOrOverridesSynthesized
+
 /**
  * Given a fake override, returns an overridden non-abstract function from an interface which is the actual implementation of this function
  * that should be called when the given fake override is called.
  */
-fun findImplementationFromInterface(descriptor: CallableMemberDescriptor): CallableMemberDescriptor? {
+fun <D: CallableMemberDescriptor> findImplementationFromInterface(descriptor: D): D? {
     val overridden = OverridingUtil.getOverriddenDeclarations(descriptor)
     val filtered = OverridingUtil.filterOutOverridden(overridden)
 
