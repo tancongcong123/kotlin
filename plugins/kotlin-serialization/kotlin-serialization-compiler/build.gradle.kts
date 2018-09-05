@@ -5,12 +5,15 @@ plugins {
     kotlin("jvm")
     id("jps-compatible")
 }
+
+jvmTarget = "1.6"
+
 dependencies {
 //    val compileOnly by configurations
 //    val runtime by configurations
     compileOnly(intellijCoreDep()) { includeJars("intellij-core") }
     compileOnly(intellijDep())
-    compileOnly(intellijPluginDep("maven"))
+    excludeInAndroidStudio(rootProject) { compileOnly(intellijPluginDep("maven")) }
     compileOnly(project(":jps-plugin"))
     compileOnly(project(":compiler:plugin-api"))
     compileOnly(project(":compiler:frontend"))
@@ -35,10 +38,8 @@ val jar = runtimeJar {
     from(fileTree("$projectDir/src")) { include("META-INF/**") }
 }
 
-val serialPluginDir: File by rootProject.extra
-dist(targetDir = File(serialPluginDir,"lib"), targetName = the<BasePluginConvention>().archivesBaseName.removePrefix("kotlin-") + ".jar")
+dist(targetName = the<BasePluginConvention>().archivesBaseName + ".jar")
 
-ideaPlugin {
-    from(jar)
-    rename("^kotlin-", "")
-}
+runtimeJar()
+
+ideaPlugin()
