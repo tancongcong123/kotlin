@@ -11,6 +11,11 @@ import org.jetbrains.kotlin.protobuf.MessageLite
 class VersionRequirementTable private constructor(private val infos: List<ProtoBuf.VersionRequirement>) {
     operator fun get(id: Int): ProtoBuf.VersionRequirement? = infos.getOrNull(id)
 
+    fun filterOutLanguageVersionRequirement(): VersionRequirementTable {
+        val newInfos = infos.filterNot { it.versionKind == ProtoBuf.VersionRequirement.VersionKind.LANGUAGE_VERSION }
+        return VersionRequirementTable(newInfos)
+    }
+
     companion object {
         val EMPTY = VersionRequirementTable(emptyList())
 
