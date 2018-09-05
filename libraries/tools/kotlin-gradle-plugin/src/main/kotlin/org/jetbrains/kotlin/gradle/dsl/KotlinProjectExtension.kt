@@ -19,6 +19,7 @@ package org.jetbrains.kotlin.gradle.dsl
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Project
 import org.gradle.api.internal.plugins.DslObject
+import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinAndroidTarget
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinWithJavaTarget
 import org.jetbrains.kotlin.gradle.plugin.source.KotlinSourceSet
 import kotlin.reflect.KClass
@@ -42,6 +43,10 @@ open class KotlinProjectExtension {
         @Suppress("UNCHECKED_CAST")
         get() = DslObject(this).extensions.getByName("sourceSets") as NamedDomainObjectContainer<out KotlinSourceSet>
         internal set(value) { DslObject(this).extensions.add("sourceSets", value) }
+}
+
+open class KotlinSingleAndroidTargetExtension: KotlinProjectExtension() {
+    internal lateinit var target: KotlinAndroidTarget
 }
 
 open class KotlinSingleJavaTargetExtension : KotlinProjectExtension() {

@@ -21,9 +21,11 @@ import org.gradle.api.*
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.file.SourceDirectorySet
+import org.jetbrains.kotlin.gradle.dsl.KotlinSingleAndroidTargetExtension
 import org.jetbrains.kotlin.gradle.dsl.kotlinExtension
 import org.jetbrains.kotlin.gradle.plugin.source.KotlinSourceSet
 import org.jetbrains.kotlin.gradle.tasks.AbstractKotlinCompile
+import java.util.concurrent.Callable
 
 abstract class KotlinPlatformPluginBase(protected val platformName: String) : Plugin<Project> {
     companion object {
@@ -156,7 +158,7 @@ open class KotlinPlatformImplementationPluginBase(platformName: String) : Kotlin
 
             val commonSources = getKotlinSourceDirectorySetSafe(commonSourceSet)!!
             platformTask.source(commonSources)
-            platformTask.commonSourceSet += commonSources
+            platformTask.commonSourceSet.from(commonSources)
         }
     }
 
@@ -200,8 +202,29 @@ open class KotlinPlatformAndroidPlugin : KotlinPlatformImplementationPluginBase(
         val androidExtension = platformProject.extensions.getByName("android") as BaseExtension
         val androidSourceSet = androidExtension.sourceSets.findByName(commonSourceSet.name) ?: return
         val kotlinSourceSet = androidSourceSet.getConvention(KOTLIN_DSL_NAME) as? KotlinSourceSet
-                ?: return
-        kotlinSourceSet.kotlin.source(getKotlinSourceDirectorySetSafe(commonSourceSet)!!)
+            ?: return
+
+        val commonKotlinSources = getKotlinSourceDirectorySetSafe(commonSourceSet)!!
+
+        kotlinSourceSet.kotlin.source(commonKotlinSources)
+
+        // Also register the common source set sources for -Xcommon-sources, KT-26589, by adding it to the task of
+        // those compilations which compile the kotlinSourceSet:
+        (platformProject.kotlinExtension as KotlinSingleAndroidTargetExtension).target
+            .compilations
+            .all { compilation ->
+                platformProject.tasks
+                    .withType(AbstractKotlinCompile::class.java)
+                    .matching { it.name == compilation.compileKotlinTaskName }
+                    .all { kotlinCompileTask -> // workaround: task does not exist at this point, handle it after it is created
+                        kotlinCompileTask.commonSourceSet.from(Callable { // evaluate the condition upon file collection resolution
+                            if (kotlinSourceSet in compilation.kotlinSourceSets)
+                                commonKotlinSources
+                            else
+                                emptyList<Any>()
+                        })
+                    }
+            }
     }
 }
 

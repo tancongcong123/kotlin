@@ -117,6 +117,9 @@ open class KotlinAndroidPluginWrapper @Inject constructor(
 ): KotlinBasePluginWrapper(fileResolver) {
     override fun getPlugin(project: Project, kotlinGradleBuildServices: KotlinGradleBuildServices): Plugin<Project> =
         KotlinAndroidPlugin(kotlinPluginVersion)
+
+    override val projectExtensionClass: KClass<out KotlinSingleAndroidTargetExtension>
+        get() = KotlinSingleAndroidTargetExtension::class
 }
 
 open class Kotlin2JsPluginWrapper @Inject constructor(

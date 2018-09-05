@@ -23,6 +23,7 @@ import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.jvm.tasks.Jar
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import org.jetbrains.kotlin.gradle.dsl.KotlinJvmOptionsImpl
+import org.jetbrains.kotlin.gradle.dsl.KotlinSingleAndroidTargetExtension
 import org.jetbrains.kotlin.gradle.dsl.KotlinSingleJavaTargetExtension
 import org.jetbrains.kotlin.gradle.dsl.kotlinExtension
 import org.jetbrains.kotlin.gradle.internal.Kapt3GradleSubplugin.Companion.getKaptGeneratedClassesDir
@@ -535,11 +536,12 @@ internal open class KotlinAndroidPlugin(
 ) : Plugin<Project> {
 
     override fun apply(project: Project) {
-        val androidTarget = KotlinAndroidTarget("", project)
-        val tasksProvider = AndroidTasksProvider(androidTarget.targetName)
+        val kotlinExtension = project.kotlinExtension as KotlinSingleAndroidTargetExtension
+        kotlinExtension.target = KotlinAndroidTarget("", project)
+        val tasksProvider = AndroidTasksProvider(kotlinExtension.target.targetName)
 
         applyToTarget(
-            project, androidTarget, tasksProvider,
+            project, kotlinExtension.target, tasksProvider,
             kotlinPluginVersion
         )
     }

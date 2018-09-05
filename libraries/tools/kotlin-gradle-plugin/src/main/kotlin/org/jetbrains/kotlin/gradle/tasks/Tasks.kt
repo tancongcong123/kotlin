@@ -7,6 +7,7 @@ package org.jetbrains.kotlin.gradle.tasks
 
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.FileCollection
 import org.gradle.api.logging.Logger
 import org.gradle.api.plugins.BasePluginConvention
@@ -193,7 +194,7 @@ abstract class AbstractKotlinCompile<T : CommonCompilerArguments>() : AbstractKo
 
     @get:InputFiles
     @get:PathSensitive(PathSensitivity.RELATIVE)
-    internal var commonSourceSet: Iterable<File> = emptyList()
+    internal val commonSourceSet: ConfigurableFileCollection = project.files()
 
     @get:Input
     internal val moduleName: String
