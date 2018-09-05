@@ -59,9 +59,6 @@ class SerializerIrGenerator(val irClass: IrClass, override val compilerContext: 
             .unsubstitutedPrimaryConstructor!!
 
         val addFuncS = serialDescImplClass.referenceMethod(CallingConventions.addElement)
-        val initF = serialDescImplClass.referenceMethod("init")
-//        val pushFunc = serialDescImplClass.getFuncDesc("pushAnnotation").single()
-//        val pushClassFunc = serialDescImplClass.getFuncDesc("pushClassAnnotation").single()
 
         val thisAsReceiverParameter = irClass.thisReceiver!!
         lateinit var prop: IrProperty
@@ -99,9 +96,6 @@ class SerializerIrGenerator(val irClass: IrClass, override val compilerContext: 
                         +addFieldCall(classProp.name)
                         // serialDesc.pushAnnotation(...) todo
                     }
-
-                    // call init() to force all lazy computations (workaround for native)
-                    +irInvoke(irGet(localDesc), initF, typeHint = compilerContext.irBuiltIns.unitType)
 
                     +irSetField(
                         generateReceiverExpressionForFieldAccess(
