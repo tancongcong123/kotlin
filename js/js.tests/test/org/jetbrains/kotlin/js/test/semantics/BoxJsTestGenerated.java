@@ -3870,6 +3870,11 @@ public class BoxJsTestGenerated extends AbstractBoxJsTest {
             runTest("js/js.translator/testData/box/inline/inlineChain.kt");
         }
 
+        @TestMetadata("inlineChainCrossModule.kt")
+        public void testInlineChainCrossModule() throws Exception {
+            runTest("js/js.translator/testData/box/inline/inlineChainCrossModule.kt");
+        }
+
         @TestMetadata("inlineChainWithFewStatements.kt")
         public void testInlineChainWithFewStatements() throws Exception {
             runTest("js/js.translator/testData/box/inline/inlineChainWithFewStatements.kt");
