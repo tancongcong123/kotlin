@@ -24,8 +24,8 @@ import org.jetbrains.kotlin.cli.jvm.config.JvmClasspathRoot
 import org.jetbrains.kotlin.cli.jvm.config.JvmModulePathRoot
 import org.jetbrains.kotlin.cli.jvm.config.addJvmClasspathRoots
 import org.jetbrains.kotlin.cli.jvm.modules.CoreJrtFileSystem
+import org.jetbrains.kotlin.codegen.BytesUrlUtils
 import org.jetbrains.kotlin.codegen.ClassBuilderFactories
-import org.jetbrains.kotlin.codegen.GeneratedClassLoader
 import org.jetbrains.kotlin.codegen.KotlinCodegenFacade
 import org.jetbrains.kotlin.codegen.state.GenerationState
 import org.jetbrains.kotlin.config.*
@@ -34,8 +34,10 @@ import org.jetbrains.kotlin.parsing.KotlinParserDefinition
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.script.KotlinScriptDefinition
 import org.jetbrains.kotlin.script.util.KotlinJars
-import java.io.File
+import java.io.*
+import java.net.URL
 import java.net.URLClassLoader
+import java.util.*
 import kotlin.reflect.KClass
 import kotlin.script.experimental.api.*
 import kotlin.script.experimental.dependencies.DependenciesResolver
@@ -52,10 +54,22 @@ import kotlin.script.experimental.jvmhost.baseClassLoader
 import kotlin.script.experimental.util.getOrError
 
 class KJvmCompiledScript<out ScriptBase : Any>(
-    override val compilationConfiguration: ScriptCompilationConfiguration,
-    private val generationState: GenerationState,
-    private val scriptClassFQName: String
-) : CompiledScript<ScriptBase> {
+    compilationConfiguration: ScriptCompilationConfiguration,
+    generationState: GenerationState,
+    private var scriptClassFQName: String
+) : CompiledScript<ScriptBase>, Serializable {
+
+    private var _compilationConfiguration: ScriptCompilationConfiguration? = compilationConfiguration
+    private var compilerOutputFiles: Map<String, ByteArray> = run {
+        val res = hashMapOf<String, ByteArray>()
+        for (it in generationState.factory.asList()) {
+            res[it.relativePath] = it.asByteArray()
+        }
+        res
+    }
+
+    override val compilationConfiguration: ScriptCompilationConfiguration
+        get() = _compilationConfiguration!!
 
     override suspend fun getClass(scriptEvaluationConfiguration: ScriptEvaluationConfiguration?): ResultWithDiagnostics<KClass<*>> = try {
         val baseClassLoader = scriptEvaluationConfiguration?.get(JvmScriptEvaluationConfiguration.baseClassLoader)
@@ -66,13 +80,59 @@ class KJvmCompiledScript<out ScriptBase : Any>(
         val classLoaderWithDeps =
             if (dependencies == null) baseClassLoader
             else URLClassLoader(dependencies.toTypedArray(), baseClassLoader)
-        val classLoader = GeneratedClassLoader(generationState.factory, classLoaderWithDeps)
+        val classLoader = CompiledScriptClassLoader(classLoaderWithDeps, compilerOutputFiles)
 
         val clazz = classLoader.loadClass(scriptClassFQName).kotlin
         clazz.asSuccess()
     } catch (e: Throwable) {
         ResultWithDiagnostics.Failure(ScriptDiagnostic("Unable to instantiate class $scriptClassFQName", exception = e))
     }
+
+    // This method is exposed because the compilation configuration is not generally serializable (yet), but since it is supposed to
+    // be deserialized only from the cache, the configuration could be assigned from the cache.load method
+    fun setCompilationConfiguration(configuration: ScriptCompilationConfiguration) {
+        if (_compilationConfiguration != null) throw IllegalStateException("This method is applicable only in deserialization context")
+        _compilationConfiguration = configuration
+    }
+
+    private fun writeObject(outputStream: ObjectOutputStream) {
+        outputStream.writeObject(compilerOutputFiles)
+        outputStream.writeObject(scriptClassFQName)
+    }
+
+    private fun readObject(inputStream: ObjectInputStream) {
+        _compilationConfiguration = null
+        compilerOutputFiles = inputStream.readObject() as Map<String, ByteArray>
+        scriptClassFQName = inputStream.readObject() as String
+    }
+
+    companion object {
+        @JvmStatic
+        private val serialVersionUID = 0L
+    }
+}
+
+internal class CompiledScriptClassLoader(parent: ClassLoader, private val entries: Map<String, ByteArray>) : ClassLoader(parent) {
+
+    override fun findClass(name: String): Class<*>? {
+        val classPathName = name.replace('.', '/') + ".class"
+        val classBytes = entries[classPathName] ?: return null
+        return defineClass(name, classBytes, 0, classBytes.size)
+    }
+
+    override fun getResourceAsStream(name: String): InputStream? =
+        entries[name]?.let(::ByteArrayInputStream) ?: super.getResourceAsStream(name)
+
+    public override fun findResources(name: String?): Enumeration<URL>? {
+        val fromParent = super.findResources(name)
+
+        val url = entries[name]?.let { BytesUrlUtils.createBytesUrl(it) } ?: return fromParent
+
+        return Collections.enumeration(listOf(url) + fromParent.asSequence())
+    }
+
+    public override fun findResource(name: String?): URL? =
+        entries[name]?.let { BytesUrlUtils.createBytesUrl(it) } ?: super.findResource(name)
 }
 
 class KJvmCompilerImpl(val hostConfiguration: ScriptingHostConfiguration) : KJvmCompilerProxy {
